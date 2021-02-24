@@ -1,5 +1,9 @@
 ﻿#define DEBUG
 
+//1. 关联Scene和gameObjects。
+//2. 世界更新。(调用所有Update)
+//3. 世界固定更新。(调用FixedUpdate)
+
 #include <ctime>
 #include <typeinfo>
 #include <GL\glew.h>
@@ -31,14 +35,18 @@
 #include "Light.hpp"
 
 #include "Object.h"
-#include "Classes.h"
+#include "GameObject.h"
+#include "BaseComponents.h"
 #include "Model.h"
+
+#include "Scene.h"
 
 using namespace std;
 using namespace glm;
 
 #define WINDOW_WIDTH 1280
 #define WINDOW_HEIGHT 720
+
 ////----------------------MonoRuntime--------------------
 
 //Assembly
@@ -139,13 +147,24 @@ MonoArray* MonoCSharp_Scene_GetGameObjects()
 {
 	MonoArray* array = mono_array_new(domain, monoclassGameObject, mainScene.gameObjects.size());
 
-	for (size_t i = 0; i < mainScene.gameObjects.size(); i++)
+	//for (size_t i = 0; i < mainScene.gameObjects.size(); i++)
+	//{
+	//	MonoObject * obj = mono_object_new(domain, monoclassGameObject);
+	//	//mono_runtime_object_init(obj);
+	//	void* handle = mainScene.gameObjects[i];
+	//	mono_field_set_value(obj, monofieldGameObjectHandle, &handle);
+	//	mono_array_set(array, MonoObject *, i, obj);
+	//}
+
+	int i = 0;
+	for (list<GameObject *>::iterator it = mainScene.gameObjects.begin(); it != mainScene.gameObjects.end(); it++)
 	{
 		MonoObject * obj = mono_object_new(domain, monoclassGameObject);
 		//mono_runtime_object_init(obj);
-		void* handle = mainScene.gameObjects[i];
+		void* handle = *it;
 		mono_field_set_value(obj, monofieldGameObjectHandle, &handle);
 		mono_array_set(array, MonoObject *, i, obj);
+		i++;
 	}
 
 	return array;
@@ -233,7 +252,7 @@ void * MonoCSharp_Component_Construct(int tid, MonoString * monostr)
 		com = new Transform();
 		break;
 	case 4:
-		com = new MonoScript(name);
+		com = new MonoScript(name, domain, image_core, image_scripts);
 		break;
 		//case 5: //Mesh
 			//break;
@@ -404,10 +423,9 @@ void sceneInit()
 	obj2->name = "Object2";
 
 	
-
-	gamesObjects.push_back(obj0);
-	gamesObjects.push_back(obj1);
-	gamesObjects.push_back(obj2);
+	mainScene.gameObjects.push_back(obj0);
+	mainScene.gameObjects.push_back(obj1);
+	mainScene.gameObjects.push_back(obj2);
 
 
 }
@@ -423,6 +441,17 @@ void fixed_update()
 //UPDATE
 void update()
 {
+	//世界更新(调用所有Update)
+
+	MonoClass* monoclassCore = mono_class_from_name(image_core, "MonoCSharp", "Core");
+
+	const bool include_namespace = true;
+	MonoMethodDesc* method_desc = mono_method_desc_new("MonoCSharp.Core:WorldUpdate()", include_namespace);
+	MonoMethod* method = mono_method_desc_search_in_class(method_desc, monoclassCore);
+	mono_method_desc_free(method_desc);
+
+	mono_runtime_invoke(method, NULL, NULL, NULL);
+
 	//光源旋转
 	mat4 rotM = rotate(mat4(1.0f), 0.001f * GAME_TIME_SCALE, up);
 	light.dir = rotM * vec4(light.dir, 0.0f);
@@ -776,7 +805,7 @@ void passOne(void)
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
 
-	for (list<GameObject *>::iterator it = gamesObjects.begin(); it != gamesObjects.end(); it++)
+	for (list<GameObject *>::iterator it = mainScene.gameObjects.begin(); it != mainScene.gameObjects.end(); it++)
 	{
 		GameObject * gameObject = *it;
 		if (gameObject->getComponent(enum_Mesh) != nullptr)
@@ -816,7 +845,7 @@ void passTwo(void)
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
 
-	for (list<GameObject *>::iterator it = gamesObjects.begin(); it != gamesObjects.end(); it++)
+	for (list<GameObject *>::iterator it = mainScene.gameObjects.begin(); it != mainScene.gameObjects.end(); it++)
 	{
 
 		GameObject * gameObject = *it;
@@ -983,7 +1012,7 @@ int main(void)
 	monoclassMonoScript = mono_class_from_name(image_core, "MonoCSharp", "MonoScript");
 	monofieldMonoScriptHandle = mono_class_get_field_from_name(monoclassMonoScript, "handle");
 
-	monoclassVec3 = mono_class_from_name(image_core, "MonoCSharp", "Vec3");
+	monoclassVec3 = mono_class_from_name(image_core, "MonoCSharp", "Vector3");
 	monofieldVec3x = mono_class_get_field_from_name(monoclassVec3, "x");
 	monofieldVec3y = mono_class_get_field_from_name(monoclassVec3, "y");
 	monofieldVec3z = mono_class_get_field_from_name(monoclassVec3, "z");
@@ -1008,14 +1037,7 @@ int main(void)
 	mono_add_internal_call("MonoCSharp.Transform::get_Scale", reinterpret_cast<void*>(MonoCSharp_Transform_get_Scale));
 	mono_add_internal_call("MonoCSharp.Transform::set_Scale", reinterpret_cast<void*>(MonoCSharp_Transform_set_Scale));
 
-	//MonoClass* monoclassTestClass = mono_class_from_name(image_core, "MonoCSharp", "TestClass");
-
-	//const bool include_namespace = true;
-	//MonoMethodDesc* method_desc = mono_method_desc_new("MonoCSharp.TestClass:ComponentDeleteAddTest()", include_namespace);
-	//MonoMethod* method = mono_method_desc_search_in_class(method_desc, monoclassTestClass);
-	//mono_method_desc_free(method_desc);
-
-	//mono_runtime_invoke(method, NULL, NULL, NULL);
+	
 
 
 
@@ -1055,6 +1077,7 @@ int main(void)
 		}
 		//UPDATE:
 		update();
+
 		//DISPLAY:
 		display(window, glfwGetTime());//渲染
 		glfwSwapBuffers(window);//交换缓冲区(会等待Interval)

@@ -24,10 +24,10 @@ namespace MonoCSharp
         Scene = 999
     }
 
-    public struct Vec3
+    public struct Vector3
     {
         public float x, y, z;
-        public Vec3(float newx, float newy, float newz)
+        public Vector3(float newx, float newy, float newz)
         {
             x = newx;
             y = newy;
@@ -159,45 +159,55 @@ namespace MonoCSharp
             get;
         }
 
-        public Vec3 Position
+        public Vector3 Position
         {
             get { return get_Position(this.Handle); }
             set { set_Position(this.Handle, value); }
         }
         [MethodImpl(MethodImplOptions.InternalCall)]
-        public static extern Vec3 get_Position(IntPtr ptr);
+        public static extern Vector3 get_Position(IntPtr ptr);
         [MethodImpl(MethodImplOptions.InternalCall)]
-        public static extern void set_Position(IntPtr ptr, Vec3 pos);
+        public static extern void set_Position(IntPtr ptr, Vector3 pos);
 
-        public Vec3 Rotation
+        public Vector3 Rotation
         {
             get { return get_Rotation(this.Handle); }
             set { set_Rotation(this.Handle, value); }
         }
         [MethodImpl(MethodImplOptions.InternalCall)]
-        public static extern Vec3 get_Rotation(IntPtr ptr);
+        public static extern Vector3 get_Rotation(IntPtr ptr);
         [MethodImpl(MethodImplOptions.InternalCall)]
-        public static extern void set_Rotation(IntPtr ptr, Vec3 rot);
+        public static extern void set_Rotation(IntPtr ptr, Vector3 rot);
 
-        public Vec3 Scale
+        public Vector3 Scale
         {
             get { return get_Scale(this.Handle); }
             set { set_Scale(this.Handle, value); }
         }
         [MethodImpl(MethodImplOptions.InternalCall)]
-        public static extern Vec3 get_Scale(IntPtr ptr);
+        public static extern Vector3 get_Scale(IntPtr ptr);
         [MethodImpl(MethodImplOptions.InternalCall)]
-        public static extern void set_Scale(IntPtr ptr, Vec3 scale);
+        public static extern void set_Scale(IntPtr ptr, Vector3 scale);
     }
 
     public class MonoScript: Component
     {
         //public string name;
     }
-    public class TTT : MonoScript
+
+    public class MyMonoScript : MonoScript
     {
 
     }
+
+    public class Core
+    {
+        public static void WorldUpdate()
+        {
+            //....
+        }
+    }
+
     public class TestClass
     {
         public static void HelloWorld()
@@ -254,14 +264,14 @@ namespace MonoCSharp
             Console.WriteLine("\n\n\n创建组件...");
             Transform newcom = new Transform();
             Console.WriteLine("添加组件...\n\n\n");
-            newcom.Position = new Vec3(9f, 9f, 9f);
-            newcom.Rotation = new Vec3(90f, 180f, 270f);
-            newcom.Scale = new Vec3(1.1f, 1.1f, 1.1f);
+            newcom.Position = new Vector3(9f, 9f, 9f);
+            newcom.Rotation = new Vector3(90f, 180f, 270f);
+            newcom.Scale = new Vector3(1.1f, 1.1f, 1.1f);
             Scene.GetGameObjects()[0].AddComponent(newcom);//添加新的Transform
 
             LogScene();
 
-            TTT t = new TTT();
+            MyMonoScript t = new MyMonoScript();
             Scene.GetGameObjects()[0].AddComponent(t);
 
             LogScene();
@@ -271,6 +281,8 @@ namespace MonoCSharp
             Console.ReadLine();
         }
     }
+
+    
     
     public class Serializer
     {

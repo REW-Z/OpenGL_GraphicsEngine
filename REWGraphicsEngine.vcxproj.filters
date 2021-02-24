@@ -21,13 +21,19 @@
     <ClCompile Include="Utils.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Classes.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="Model.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Object.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseComponents.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObject.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -44,13 +50,19 @@
     <ClInclude Include="Geometry.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Classes.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="Model.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Object.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseComponents.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObject.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
